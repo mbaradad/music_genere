@@ -2,6 +2,7 @@ import sys
 import glob
 import os
 from audioop import add
+import tables
 import cPickle as pickle
 
 from sphinx.ext.napoleon.iterators import peek_iter
@@ -34,12 +35,13 @@ class DataParser():
     """
     This function does 3 simple things:
     - open the song file
-    - get artist ID and put it
+    - get info
     - close the file
     """
     h5 = Getters.open_h5_file_read(filename)
     tags = Getters.get_artist_mbtags(h5);
     if len(tags) == 0:
+      h5.close
       return 0
     for tag in tags:
       if tag in self.styles.keys():
