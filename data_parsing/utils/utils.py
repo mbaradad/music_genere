@@ -30,4 +30,6 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
         print "Processed" + str(cnt)
         print "Processed with tags " + str(cnt_no_tags)
         flushFunc()
+  flushFunc()
+
   return cnt
