@@ -49,12 +49,11 @@ class DataParser():
     self.tags_list.append(tags)
     self.pitches_list.append(Getters.get_segments_pitches(h5))
     self.timbres_list.append(Getters.get_segments_timbre(h5))
-
     h5.close()
     return 1
 
   def flushFunc(self):
-    f = open(self.outDir + '/obj' + str(self.flushIndex) + '.save', 'wb')
+    f = open(self.outDir + '/obj_' +"%02d" % (self.flushIndex,) + '.save', 'wb')
     pickle.dump([self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
     f.close()
     self.tags_list = []
