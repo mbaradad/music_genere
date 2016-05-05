@@ -24,7 +24,7 @@ class DataParser():
     self.flushIndex = 0
 
   def process_info(self):
-    songs = Utils.apply_to_all_files(self.baseLocation, self.process_h5_file_info, self.flushFunc, 100)
+    songs = Utils.apply_to_all_files(self.baseLocation, self.process_h5_file_info, self.flushFunc, 1000)
     f = open(self.outDir + '/styles.save', 'wb')
     pickle.dump([self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
     f.close()
