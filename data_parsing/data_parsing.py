@@ -22,6 +22,7 @@ class DataParser():
     self.pitches_list = []
     self.timbres_list = []
     self.tags_list = []
+    self.ids_list = []
     self.flushIndex = 0
 
   def process_info(self):
@@ -48,6 +49,7 @@ class DataParser():
         self.styles[tag] += 1
       else:
         self.styles[tag] = 1
+    self.ids_list.append(Getters.get_track_id(h5))
     self.tags_list.append(tags)
     self.pitches_list.append(Getters.get_segments_pitches(h5))
     self.timbres_list.append(Getters.get_segments_timbre(h5))
@@ -56,7 +58,7 @@ class DataParser():
 
   def flushFunc(self):
     f = open(self.outDir + '/obj_' +"%02d" % (self.flushIndex,) + '.save', 'wb')
-    pickle.dump([self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump([self.ids_list, self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
     f.close()
     self.tags_list = []
     self.pitches_list = []
