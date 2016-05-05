@@ -41,7 +41,7 @@ class DataParser():
     h5 = Getters.open_h5_file_read(filename)
     tags = Getters.get_artist_mbtags(h5);
     if len(tags) == 0:
-      h5.close
+      h5.close()
       return 0
     for tag in tags:
       if tag in self.styles.keys():
