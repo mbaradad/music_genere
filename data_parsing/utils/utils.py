@@ -23,7 +23,6 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
 
     # apply function to all files
     for f in files:
-
       hasRead = func(f)
       cnt+=hasRead
       cnt_no_tags+=1
