@@ -1,8 +1,14 @@
-import os
 import glob
-import hdf5_getters as Getters
+import os
 import urllib2
 from xml.dom import minidom
+
+import hdf5_getters as Getters
+import py7D.py7D as sevenD
+import mp3_utilities as mp3
+from tempfile import mktemp
+
+
 
 def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, flushPeriodicity=1000, ext='.h5'):
   """
@@ -67,6 +73,17 @@ def get_preview(h5):
     We parse it for the URL that we return, or '' if a problem
     """
   trackid = Getters.get_track_7digitalid(h5)
-  previewUrl =py7D.preview_url(trackid)
-
+  previewUrl = sevenD.preview_url(trackid)
+  try:
+    mp3Url = urllib2.urlopen(previewUrl)
+  except :
+    print "error"
+    return 0
+  mp3Temp= mktemp('.mp3')
+  with open(mp3Temp, 'wb') as output:
+    output.write(mp3Url.read())
+  mp3.mp3ToDFT(mp3Temp)
   return previewUrl
+
+
+

@@ -5,8 +5,8 @@
 from os.path import expanduser
 home = expanduser("~")
 
-lines = tuple(open(home + '.py7Dconfig', 'r'))
+lines = tuple(open(home + '/.py7Dconfig', 'r'))
 
-oauthkey = lines[0]
-secret = lines[1]
-country = lines[2]
+oauthkey = lines[0].strip()
+secret = lines[1].strip()
+country = lines[2].strip()

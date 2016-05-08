@@ -1,8 +1,9 @@
 import cPickle as pickle
 import sys
 
-import utils
-import hdf5_getters as Getters
+import utils.utils as utils
+import utils.hdf5_getters as Getters
+
 
 #reuses code from http://labrosa.ee.columbia.edu/millionsong/sites/default/files/tutorial1.py.txt
 
@@ -16,6 +17,7 @@ class DataParser():
     self.timbres_list = []
     self.tags_list = []
     self.ids_list = []
+    self.dft_list = []
     self.flushIndex = 0
 
   def process_info(self):
@@ -46,7 +48,7 @@ class DataParser():
     self.tags_list.append(tags)
     self.pitches_list.append(Getters.get_segments_pitches(h5))
     self.timbres_list.append(Getters.get_segments_timbre(h5))
-    preview = utils.get_preview(h5)
+    preview = utils.get_preview_dft(h5)
     h5.close()
     return 1
 
