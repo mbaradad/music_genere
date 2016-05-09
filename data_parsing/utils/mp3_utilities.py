@@ -15,6 +15,7 @@ def mp3ToDFT(mp3filename):
     FNULL = open(os.devnull, 'w')
     subprocess.call(['avconv', '-i', mp3filename, "-ss", "15", "-t", "3", wname], stdout=FNULL, stderr=subprocess.STDOUT)
     sig, fs, enc = wavread(wname)
+    #todo: remove wav file
     #todo: convert to mono, averaging sig[:,0] + sig[;,1]
     os.unlink(wname)
 

@@ -36,7 +36,13 @@ class DataParser():
     """
     h5 = Getters.open_h5_file_read(filename)
     tags = Getters.get_artist_mbtags(h5);
+
     if len(tags) == 0:
+      h5.close()
+      return 0
+    try:
+      preview = utils.get_preview_dft(h5)
+    except:
       h5.close()
       return 0
     for tag in tags:
@@ -48,17 +54,18 @@ class DataParser():
     self.tags_list.append(tags)
     self.pitches_list.append(Getters.get_segments_pitches(h5))
     self.timbres_list.append(Getters.get_segments_timbre(h5))
-    preview = utils.get_preview_dft(h5)
+    self.dft_list.append(Getters.get_segments_timbre(h5))
     h5.close()
     return 1
 
   def flushFunc(self):
     f = open(self.outDir + '/obj_' +"%02d" % (self.flushIndex,) + '.save', 'wb')
-    pickle.dump([self.ids_list, self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump([self.ids_list, self.tags_list, self.pitches_list, self.timbres_list, self.dft_list], f, protocol=pickle.HIGHEST_PROTOCOL)
     f.close()
     self.tags_list = []
     self.pitches_list = []
     self.timbres_list = []
+    self.dft_list = []
     self.flushIndex+=1
 
 

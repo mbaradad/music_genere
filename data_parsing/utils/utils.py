@@ -59,7 +59,7 @@ def url_call(url):
     return xmldoc
 
 
-def get_preview(h5):
+def get_preview_dft(h5):
   """
     Ask for the preview to a particular track, get the XML answer
     After calling the API with a given track id,
@@ -82,8 +82,8 @@ def get_preview(h5):
   mp3Temp= mktemp('.mp3')
   with open(mp3Temp, 'wb') as output:
     output.write(mp3Url.read())
-  mp3.mp3ToDFT(mp3Temp)
-  return previewUrl
+  # todo: remove mp3 file
+  return mp3.mp3ToDFT(mp3Temp)
 
 
 
