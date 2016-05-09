@@ -1,15 +1,9 @@
-import sys
-import glob
-import os
-from audioop import add
-import tables
 import cPickle as pickle
+import sys
 
-from sphinx.ext.napoleon.iterators import peek_iter
-
+import utils.utils as utils
 import utils.hdf5_getters as Getters
-import utils.utils as Utils
-import numpy
+
 
 #reuses code from http://labrosa.ee.columbia.edu/millionsong/sites/default/files/tutorial1.py.txt
 
@@ -23,10 +17,11 @@ class DataParser():
     self.timbres_list = []
     self.tags_list = []
     self.ids_list = []
+    self.dft_list = []
     self.flushIndex = 0
 
   def process_info(self):
-    songs = Utils.apply_to_all_files(self.baseLocation, self.process_h5_file_info, self.flushFunc, 1000)
+    songs = utils.apply_to_all_files(self.baseLocation, self.process_h5_file_info, self.flushFunc, 1000)
     f = open(self.outDir + '/styles.save', 'wb')
     pickle.dump([self.tags_list, self.pitches_list, self.timbres_list], f, protocol=pickle.HIGHEST_PROTOCOL)
     f.close()
@@ -53,6 +48,7 @@ class DataParser():
     self.tags_list.append(tags)
     self.pitches_list.append(Getters.get_segments_pitches(h5))
     self.timbres_list.append(Getters.get_segments_timbre(h5))
+    preview = utils.get_preview_dft(h5)
     h5.close()
     return 1
 
