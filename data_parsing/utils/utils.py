@@ -33,11 +33,12 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
     # apply function to all files
     for f in files:
       hasRead = func(f)
+
       cnt+=hasRead
       cnt_no_tags+=1
+      if hasRead == 1 and cnt % (flushPeriodicity/20) == 0:
+        print "Processed correctly " + str(cnt) + " of " + str(cnt_no_tags)
       if hasRead == 1 and cnt%flushPeriodicity == 0:
-        print "Processed" + str(cnt)
-        print "Processed with tags " + str(cnt_no_tags)
         flushFunc()
   flushFunc()
 
@@ -74,16 +75,14 @@ def get_preview_dft(h5):
     """
   trackid = Getters.get_track_7digitalid(h5)
   previewUrl = sevenD.preview_url(trackid)
-  try:
-    mp3Url = urllib2.urlopen(previewUrl)
-  except :
-    print "error"
-    return 0
+  mp3Url = urllib2.urlopen(previewUrl)
   mp3Temp= mktemp('.mp3')
   with open(mp3Temp, 'wb') as output:
     output.write(mp3Url.read())
   # todo: remove mp3 file
-  return mp3.mp3ToDFT(mp3Temp)
+  dft = mp3.mp3ToDFT(mp3Temp)
+  os.remove(mp3Temp)
+  return dft
 
 
 
