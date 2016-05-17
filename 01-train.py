@@ -6,7 +6,6 @@ import cPickle as pickle
 import glob
 import random
 from tqdm import tqdm
-from eliaLib import dataRepresentation
 
 import theano
 import theano.tensor as T
@@ -19,9 +18,6 @@ from lasagne.layers import SliceLayer, concat, DenseLayer
 from lasagne.nonlinearities import softmax, rectify
 from lasagne.utils import floatX
 
-import file_dir as file_dir
-
-pathToImagesPickle = file_dir.pathToImagesPickle
 
 
 class GlobalPooling2DLayer(object):
@@ -51,27 +47,27 @@ class GlobalPooling2DLayer(object):
         return out
 
 
-def buildNetwork(inputWidth, inputHeight, input_var=None):
+def buildNetwork(input_var=None):
     net = {}
 
-    net['input'] = InputLayer((None, 128, 599), input_var=input_var)
-
+    net['input'] = InputLayer((None, 12, 300), input_var=input_var)
+    print "input: {}".format(net['input'].output_shape[1:])
     # conv1
     net['conv1'] = Conv1DLayer(net['input'], num_filters=256, filter_size=4, nonlinearity=rectify)
     print "conv1: {}".format(net['conv1'].output_shape[1:])
     # pool1
-    net['pool1'] = MaxPool1DLayer(net['conv1'], pool_size=4)
+    net['pool1'] = Pool1DLayer(net['conv1'], pool_size=4)
     print "pool1: {}".format(net['pool1'].output_shape[1:])
 
     # conv2
     net['conv2'] = Conv1DLayer(net['conv1'], num_filters=256, filter_size=4, nonlinearity=rectify)
     print "conv2: {}".format(net['conv2'].output_shape[1:])
     # pool2
-    net['pool2'] = MaxPool2DLayer(net['conv2'], pool_size=1)
+    net['pool2'] = Pool1DLayer(net['conv2'], pool_size=1)
     print "pool2: {}".format(net['pool2'].output_shape[1:])
 
     # conv3
-    net['conv3'] = Conv2DLayer(net['conv2'], num_filters=512, filter_size=4)
+    net['conv3'] = Conv1DLayer(net['conv2'], num_filters=512, filter_size=4)
     print "conv3: {}".format(net['conv3'].output_shape[1:])
 
     # global pool
@@ -87,23 +83,28 @@ def buildNetwork(inputWidth, inputHeight, input_var=None):
     # fc6
     net['fc6'] = DenseLayer(net['pool3'], num_units=2048,
                             nonlinearity=lasagne.nonlinearities.rectify)
-
+    print "fc6: {}".format(net['fc6'].output_shape[1:])
     # fc7
     net['fc7'] = DenseLayer(net['fc6'], num_units=2048,
                             nonlinearity=lasagne.nonlinearities.rectify)
-
+    print "fc7: {}".format(net['fc7'].output_shape[1:])
     # output
-    net['output'] = DenseLayer(net['fc7'], num_units=40,
+    net['output'] = DenseLayer(net['fc7'], num_units=256,
                                nonlinearity=lasagne.nonlinearities.softmax)
+    print "output: {}".format(net['output'].output_shape[1:])
 
     return net
-
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in xrange(0, len(l), n):
         yield l[i:i + n]
 
+
+def batch_gen(X, y, N):
+    while True:
+        idx = np.random.choice(len(y), N)
+        yield X[idx].astype('float32'), y[idx].astype('int32')
 
 if __name__ == "__main__":
 
@@ -118,15 +119,20 @@ if __name__ == "__main__":
     # valData = validationData[0:2000]
 
     # Create network
+
+    X_train = np.random.randn(1000,12, 300)
+    y_train = np.random.random_integers(0, 256, 1000)
+
     inputImage = T.tensor3()
-    output = T.vector()
+    output = T.ivector()
 
 
-    net = buildNetwork(599, inputImage)
+    net = buildNetwork(inputImage)
 
     prediction = lasagne.layers.get_output(net['output'])
     test_prediction = lasagne.layers.get_output(net['output'], deterministic=True)
-    loss = lasagne.objectives.squared_error(prediction, output)
+    # loss = lasagne.objectives.squared_error(prediction, output)
+    loss = lasagne.objectives.categorical_crossentropy(prediction, output)
     loss = loss.mean()
 
     init_learningrate = 0.01
@@ -143,39 +149,47 @@ if __name__ == "__main__":
 
     train_fn = theano.function([inputImage, output], loss, updates=updates, allow_input_downcast=True)
 
-    val_fn = theano.function([inputImage, output], loss)
+    # val_fn = theano.function([inputImage, output], loss)
 
     predict_fn = theano.function([inputImage], test_prediction)
 
-    batchSize = 128
+    BATCH_SIZE = 128
     numEpochs = 50
 
-    batchIn = np.zeros((batchSize, 128, 599), theano.config.floatX)
-    batchOut = np.zeros((batchSize, 1, 40), theano.config.floatX)
+    # batchIn = np.zeros((batchSize, 12, 300), theano.config.floatX)
+    # batchOut = np.zeros((batchSize, 256), theano.config.floatX)
 
-    print 'Loading training data...'
-    with open(pathToImagesPickle, 'rb') as f:
-        trainData = pickle.load(f)
-    print '-->done!'
+    train_batches = batch_gen(X_train, y_train, BATCH_SIZE)
+    N_BATCHES = len(X_train) // BATCH_SIZE
 
-    for currEpoch in tqdm(range(numEpochs)):
+    # print 'Loading training data...'
+    # with open(pathToImagesPickle, 'rb') as f:
+    #    trainData = pickle.load(f)
+    # print '-->done!'
 
-        random.shuffle(trainData)
+    for currEpoch in tqdm(range(numEpochs),ncols=20):
+
+        # random.shuffle(trainData)
         # random.shuffle( valData )
 
         train_err = 0.
         # val_err = 0.
 
+        for _ in range(N_BATCHES):
+            X, y = next(train_batches)
+            train_err += train_fn(X, y)
+        '''
         for currChunk in chunks(trainData, batchSize):
 
             if len(currChunk) != batchSize:
                 continue
 
             for k in range(batchSize):
-                batchIn[k, ...] = (currChunk[k].image.data.astype(theano.config.floatX) / 255.
+                batchIn[k, ...] = (currChunk[k].astype(theano.config.floatX) / 255.
                 batchOut[k, ...] = (currChunk[k].output.data.astype(theano.config.floatX))
+
             train_err += train_fn(batchIn, batchOut)
-        '''
+
         for currChunk in chunks(valData, batchSize):
 
             if len(currChunk) != batchSize:
