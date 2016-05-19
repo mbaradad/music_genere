@@ -6,7 +6,6 @@ import cPickle as pickle
 import glob
 import random
 from tqdm import tqdm
-from data_reader import DataReader
 
 import theano
 import theano.tensor as T
@@ -111,7 +110,8 @@ if __name__ == "__main__":
 
     # Load data
 
-
+    # with open( 'validationData.pickle', 'rb') as f:
+    # validationData = pickle.load( f )
 
     # with open( 'testData.pickle', 'rb') as f:
     # testData = pickle.load( f )
@@ -119,12 +119,11 @@ if __name__ == "__main__":
     # valData = validationData[0:2000]
 
     # Create network
-    dataReader = DataReader('/home/manel/Documents/obj_00.save')
 
     X_train = np.random.randn(1000,12, 300)
-    y_train = np.random.random_integers(1000, 1, 256)
+    y_train = np.random.random_integers(0, 256, 1000)
 
-    inputImage = T.tensor2()
+    inputImage = T.tensor3()
     output = T.ivector()
 
 
