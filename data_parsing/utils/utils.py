@@ -24,6 +24,7 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
      number of files
   """
   cnt = 0
+  cnt_augmented = 0
   cnt_no_tags = 0
   # iterate over all files in all subdirectories
   for root, dirs, files in os.walk(baseLocation):
@@ -32,12 +33,14 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
 
     # apply function to all files
     for f in files:
-      hasRead = func(f)
-
-      cnt+=hasRead
+      h5 = Getters.open_h5_file_read(f)
+      hasRead = func(h5)
+      h5.close()
+      cnt_augmented+=hasRead
+      if(hasRead != 0): cnt+=1
       cnt_no_tags+=1
-      if hasRead == 1 and cnt % (flushPeriodicity/20) == 0:
-        print "Processed correctly " + str(cnt) + " of " + str(cnt_no_tags)
+      if hasRead == 1 and cnt % (500) == 0:
+        print "Processed correctly " + str(cnt) + " agumented: "+ str(cnt_augmented) + " of " + str(cnt_no_tags)
       if hasRead == 1 and cnt%flushPeriodicity == 0:
         flushFunc()
   flushFunc()
