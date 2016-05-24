@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import cv2
 import sys
 import cPickle as pickle
 import glob
@@ -18,6 +17,9 @@ from lasagne.layers import SliceLayer, concat, DenseLayer
 from lasagne.nonlinearities import softmax, rectify
 from lasagne.utils import floatX
 
+from os import listdir
+from os.path import isfile, join
+import numpy as np
 
 
 class GlobalPooling2DLayer(object):
@@ -120,19 +122,22 @@ if __name__ == "__main__":
 
     # Create network
 
-    X_train = np.random.randn(1000,12, 300)
-    y_train = np.random.random_integers(0, 256, 1000)
+    # X_train = np.random.randn(1000,12, 300)
+    # y_train = np.random.random_integers(0, 256, 1000)
+
+    x = list()
+    y = list()
 
     inputImage = T.tensor3()
-    output = T.ivector()
+    output = T.imatrix()
 
 
     net = buildNetwork(inputImage)
 
     prediction = lasagne.layers.get_output(net['output'])
     test_prediction = lasagne.layers.get_output(net['output'], deterministic=True)
-    # loss = lasagne.objectives.squared_error(prediction, output)
-    loss = lasagne.objectives.categorical_crossentropy(prediction, output)
+    loss = lasagne.objectives.squared_error(prediction, output)
+    # loss = lasagne.objectives.categorical_crossentropy(prediction, output)
     loss = loss.mean()
 
     init_learningrate = 0.01
@@ -158,9 +163,22 @@ if __name__ == "__main__":
 
     # batchIn = np.zeros((batchSize, 12, 300), theano.config.floatX)
     # batchOut = np.zeros((batchSize, 256), theano.config.floatX)
+    print "loading data..."
+    for f in [f for f in listdir('./data/') if '.npz' in f]:
+        npzfile = np.load('./data/'+ f)
+        x.extend(npzfile['x'])
+        y.extend(npzfile['y'])
 
-    train_batches = batch_gen(X_train, y_train, BATCH_SIZE)
-    N_BATCHES = len(X_train) // BATCH_SIZE
+    x_train = np.array(x)
+    y_train = np.array(y)
+
+
+    x_train = x_train.transpose(0, 2, 1)
+    print x_train.shape
+    print y_train.shape
+
+    train_batches = batch_gen(x_train, y_train, BATCH_SIZE)
+    N_BATCHES = len(x_train) // BATCH_SIZE
 
     # print 'Loading training data...'
     # with open(pathToImagesPickle, 'rb') as f:
