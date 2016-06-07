@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import cv2
 import sys
 import cPickle as pickle
 import glob
@@ -18,6 +17,9 @@ from lasagne.layers import SliceLayer, concat, DenseLayer
 from lasagne.nonlinearities import softmax, rectify
 from lasagne.utils import floatX
 
+from os import listdir
+from os.path import isfile, join
+import numpy as np
 
 
 class GlobalPooling2DLayer(object):
@@ -63,7 +65,7 @@ def buildNetwork(input_var=None):
     net['conv2'] = Conv1DLayer(net['conv1'], num_filters=256, filter_size=4, nonlinearity=rectify)
     print "conv2: {}".format(net['conv2'].output_shape[1:])
     # pool2
-    net['pool2'] = Pool1DLayer(net['conv2'], pool_size=1)
+    net['pool2'] = Pool1DLayer(net['conv2'], pool_size=2)
     print "pool2: {}".format(net['pool2'].output_shape[1:])
 
     # conv3
@@ -90,7 +92,7 @@ def buildNetwork(input_var=None):
     print "fc7: {}".format(net['fc7'].output_shape[1:])
     # output
     net['output'] = DenseLayer(net['fc7'], num_units=256,
-                               nonlinearity=lasagne.nonlinearities.softmax)
+                               nonlinearity=lasagne.nonlinearities.sigmoid)
     print "output: {}".format(net['output'].output_shape[1:])
 
     return net
@@ -120,19 +122,22 @@ if __name__ == "__main__":
 
     # Create network
 
-    X_train = np.random.randn(1000,12, 300)
-    y_train = np.random.random_integers(0, 256, 1000)
+    # X_train = np.random.randn(1000,12, 300)
+    # y_train = np.random.random_integers(0, 256, 1000)
+
+    x = list()
+    y = list()
 
     inputImage = T.tensor3()
-    output = T.ivector()
+    output = T.imatrix()
 
 
     net = buildNetwork(inputImage)
 
     prediction = lasagne.layers.get_output(net['output'])
     test_prediction = lasagne.layers.get_output(net['output'], deterministic=True)
-    # loss = lasagne.objectives.squared_error(prediction, output)
-    loss = lasagne.objectives.categorical_crossentropy(prediction, output)
+    loss = lasagne.objectives.squared_error(prediction, output)
+    # loss = lasagne.objectives.categorical_crossentropy(prediction, output)
     loss = loss.mean()
 
     init_learningrate = 0.01
@@ -153,14 +158,27 @@ if __name__ == "__main__":
 
     predict_fn = theano.function([inputImage], test_prediction)
 
-    BATCH_SIZE = 128
+    BATCH_SIZE = 2048
     numEpochs = 50
 
     # batchIn = np.zeros((batchSize, 12, 300), theano.config.floatX)
     # batchOut = np.zeros((batchSize, 256), theano.config.floatX)
+    print "loading data..."
+    for f in [f for f in listdir('./data/') if '.npz' in f]:
+        npzfile = np.load('./data/'+ f)
+        x.extend(npzfile['x'])
+        y.extend(npzfile['y'])
 
-    train_batches = batch_gen(X_train, y_train, BATCH_SIZE)
-    N_BATCHES = len(X_train) // BATCH_SIZE
+    x_train = np.array(x)
+    y_train = np.array(y)
+
+
+    x_train = x_train.transpose(0, 2, 1)
+    print x_train.shape
+    print y_train.shape
+
+    train_batches = batch_gen(x_train, y_train, BATCH_SIZE)
+    N_BATCHES = len(x_train) // BATCH_SIZE
 
     # print 'Loading training data...'
     # with open(pathToImagesPickle, 'rb') as f:

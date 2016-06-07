@@ -63,6 +63,7 @@ class DataParser():
       self.ids_list.append(trackId)
       self.tags_list.append(tag_list)
       self.timbres_list.append(timbres_list_segment)
+      print(Getters.get_artist_name() + ": " + Getters.get_title(h5))
       created+=1
     return created
 
