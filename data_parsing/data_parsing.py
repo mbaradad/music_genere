@@ -4,6 +4,7 @@ import sys
 import utils.utils as utils
 import utils.hdf5_getters as Getters
 import numpy as np
+import csv
 
 NUMBER_OF_TAGS = 256
 

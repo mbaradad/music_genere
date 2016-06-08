@@ -14,13 +14,13 @@ def mp3ToDFT(mp3filename):
     # convert mp3, read wav
     wname = mktemp('.wav')
     FNULL = open(os.devnull, 'w')
-    subprocess.call(['avconv', '-i', mp3filename, "-ss", "15", "-t", "9", wname], stdout=FNULL, stderr=subprocess.STDOUT)
+    subprocess.call(['avconv', '-i', mp3filename, "-ss", "15", "-t", "60", wname], stdout=FNULL, stderr=subprocess.STDOUT)
     sig, fs, enc = wavread(wname)
 
     #todo: remove wav file
     #todo: convert to mono, averaging sig[:,0] + sig[;,1]
     os.unlink(wname)
 
-    spectrogram = signal.spectrogram(sig[:,0], fs=fs)[2][0:62,:]
+    spectrogram = signal.spectrogram(sig[:,0], fs=fs, nperseg=512)[2]
 
-    return spectrogram
+    return log(spectrogram)
