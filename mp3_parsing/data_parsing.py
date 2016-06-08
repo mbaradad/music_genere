@@ -40,6 +40,7 @@ class DataParser():
     if not audiofile.tag or not audiofile.tag.genre:
       return 0
     genreName = audiofile.tag.genre.name
+    print genreName
     if genreName in self.styles:
       self.styles[genreName]+=1
     else:
