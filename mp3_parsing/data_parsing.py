@@ -4,6 +4,7 @@ import sys
 import utils as utils
 import numpy as np
 import eyed3 as eyed3
+import csv
 
 NUMBER_OF_TAGS = 256
 
@@ -15,8 +16,6 @@ class DataParser():
     self.outDir = outDir
     lines = np.genfromtxt(stylesCsv, delimiter=",", dtype=None)
     self.styles = dict()
-    for i in range(NUMBER_OF_TAGS):
-      self.styles[lines[i][0]] = i
     self.pitches_list = []
 
     self.timbres_list = []
@@ -40,7 +39,11 @@ class DataParser():
     audiofile = eyed3.load(mp3file)
     if not audiofile.tag or not audiofile.tag.genre:
       return 0
-    print audiofile.tag.genre.id
+    genreName = audiofile.tag.genre.name
+    if genreName in self.styles:
+      self.styles[genreName]+=1
+    else:
+      self.styles[genreName]=1
     return 1
 
   def flushFunc(self):
@@ -57,3 +60,6 @@ if __name__ == "__main__":
   parser = DataParser(kwargs["--basedir"], kwargs["--outDir"], kwargs["--csvDir"])
   print "Files to read:" + parser.process_info();
   print parser.styles
+  writer = csv.writer(open('out_styles.csv', 'wb'))
+  for key, value in parser.styles.items():
+    writer.writerow([key, value])
