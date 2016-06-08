@@ -24,6 +24,7 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
   cnt = 0
   cnt_augmented = 0
   cnt_no_tags = 0
+  filesRead = 0
   # iterate over all files in all subdirectories
   for root, dirs, files in os.walk(baseLocation):
     try:
@@ -35,6 +36,7 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
 
     # apply function to all files
     for f in files:
+      filesRead+=1
       try:
         hasRead = func(f)
       except:
@@ -44,7 +46,7 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
       cnt_no_tags+=1
       if hasRead == 1 and cnt % (500) == 0:
         print "Processed correctly " + str(cnt) + " agumented: "+ str(cnt_augmented) + " of " + str(cnt_no_tags)
-      if hasRead == 1 and cnt%flushPeriodicity == 0:
+      if filesRead%flushPeriodicity == 0:
         flushFunc()
   flushFunc()
 

@@ -30,7 +30,7 @@ class DataParser():
     self.flushIndex = 0
 
   def process_info(self):
-    songs = utils.apply_to_all_files(self.baseLocation, self.process_mp3_file, self.flushFunc, 100000)
+    songs = utils.apply_to_all_files(self.baseLocation, self.process_mp3_file, self.flushFunc, 1000)
     return 'number of song files:' + str(songs)
 
   def process_mp3_file(self, mp3file):
