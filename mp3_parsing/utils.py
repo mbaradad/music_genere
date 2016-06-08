@@ -26,7 +26,11 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
   cnt_no_tags = 0
   # iterate over all files in all subdirectories
   for root, dirs, files in os.walk(baseLocation):
-    files = glob.glob(os.path.join(root, '*' + ext))
+    try:
+        files = glob.glob(os.path.join(root, '*' + ext))
+    except:
+        print "ERROR couldnt process folder " + root
+        continue
     # count files
 
     # apply function to all files
