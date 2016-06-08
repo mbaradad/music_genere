@@ -8,7 +8,7 @@ from tempfile import mktemp
 
 
 
-def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, flushPeriodicity=1000, ext='mp3'):
+def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, flushPeriodicity=1000, ext='.mp3'):
   """
   From a base directory, go through all subdirectories,
   find all files with the given extension, apply the
@@ -31,7 +31,10 @@ def apply_to_all_files(baseLocation, func=lambda x: x, flushFunc=lambda x: x, fl
 
     # apply function to all files
     for f in files:
-      hasRead = func(f)
+      try:
+        hasRead = func(f)
+      except:
+        hasRead = 0
       cnt_augmented+=hasRead
       if(hasRead != 0): cnt+=1
       cnt_no_tags+=1
