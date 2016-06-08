@@ -21,6 +21,5 @@ def mp3ToDFT(mp3filename):
     #todo: convert to mono, averaging sig[:,0] + sig[;,1]
     os.unlink(wname)
 
-    spectrogram = signal.spectrogram(sig[:,0], fs=fs, nperseg=512)[2]
-
+    spectrogram = signal.spectrogram(sig[:,0], fs=fs, nperseg=256)[2]
     return log(spectrogram)

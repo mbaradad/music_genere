@@ -74,6 +74,7 @@ class DataParser():
     f.close()
     self.tags_list = []
     self.timbres_list = []
+    self.ids_list = []
     self.flushIndex+=1
 
 
@@ -81,4 +82,3 @@ if __name__ == "__main__":
   kwargs = dict(x.split('=', 1) for x in sys.argv[1:])
   parser = DataParser(kwargs["--basedir"], kwargs["--outDir"], kwargs["--csvDir"])
   print "Files to read:" + parser.process_info();
-  print parser.styles
