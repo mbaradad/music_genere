@@ -22,6 +22,11 @@ from os.path import isfile, join
 import numpy as np
 
 
+def log_softmax(x):
+    xdev = x - x.max(1, keepdims=True)
+    return xdev - T.log(T.sum(T.exp(xdev), axis=1, keepdims=True))
+
+
 def buildNetwork(input_var=None):
     net = {}
 
@@ -47,17 +52,17 @@ def buildNetwork(input_var=None):
     print "conv3: {}".format(net['conv3'].output_shape[1:])
 
     # global pool
-    # net['pool3_1'] = GlobalPoolLayer(net['conv3'], pool_function=T.mean)
-    # print "pool3_1: {}".format(net['pool3_1'].output_shape[1:])
+    net['pool3_1'] = GlobalPoolLayer(net['conv3'], pool_function=T.mean)
+    print "pool3_1: {}".format(net['pool3_1'].output_shape[1:])
 
-    # net['pool3_2'] = GlobalPoolLayer(net['conv3'], pool_function=T.max)
-    # print "pool3_2: {}".format(net['pool3_2'].output_shape[1:])
+    net['pool3_2'] = GlobalPoolLayer(net['conv3'], pool_function=T.max)
+    print "pool3_2: {}".format(net['pool3_2'].output_shape[1:])
 
-    # net['pool3'] = concat((net['pool3_1'], net['pool3_2']), axis=1)
-    #print "pool3: {}".format(net['pool3'].output_shape[1:])
+    net['pool3'] = concat((net['pool3_1'], net['pool3_2']), axis=1)
+    print "pool3: {}".format(net['pool3'].output_shape[1:])
 
     # fc6
-    net['fc6'] = DenseLayer(net['conv3'], num_units=2048,
+    net['fc6'] = DenseLayer(net['pool3'], num_units=2048,
                             nonlinearity=lasagne.nonlinearities.rectify)
     print "fc6: {}".format(net['fc6'].output_shape[1:])
 
@@ -68,10 +73,14 @@ def buildNetwork(input_var=None):
 
     # output
     net['output'] = DenseLayer(net['fc7'], num_units=100,
-                               nonlinearity=lasagne.nonlinearities.rectify)
+                               nonlinearity=log_softmax)
     print "output: {}".format(net['output'].output_shape[1:])
 
     return net
+
+
+def categorical_crossentropy_logdomain(log_predictions, targets):
+    return -T.sum(targets * log_predictions, axis=1)
 
 
 def batch_gen(X, y, N):
@@ -85,6 +94,9 @@ if __name__ == "__main__":
     x = list()
     y = list()
 
+    BATCH_SIZE = 2048
+    numEpochs = 50
+
     inputImage = T.tensor3()
     output = T.imatrix()
 
@@ -92,11 +104,11 @@ if __name__ == "__main__":
 
     prediction = lasagne.layers.get_output(net['output'])
     test_prediction = lasagne.layers.get_output(net['output'], deterministic=True)
-
+    '''
     loss = lasagne.objectives.squared_error(prediction, output)
     # loss = lasagne.objectives.categorical_crossentropy(prediction, output)
-
     # loss = lasagne.objectives.binary_crossentropy(prediction, output)
+
     loss = loss.mean()
 
     init_learningrate = 0.01
@@ -117,12 +129,9 @@ if __name__ == "__main__":
 
     predict_fn = theano.function([inputImage], test_prediction)
 
-    BATCH_SIZE = 2048
-    numEpochs = 50
-
     # batchIn = np.zeros((batchSize, 12, 300), theano.config.floatX)
     # batchOut = np.zeros((batchSize, 256), theano.config.floatX)
-
+    '''
     print "loading data..."
     for f in [f for f in listdir('./data/') if '.npz' in f]:
         npzfile = np.load('./data/' + f)
@@ -133,10 +142,27 @@ if __name__ == "__main__":
     y_train = np.array(y)
 
     x_train = x_train.transpose(0, 2, 1)
+
+
+    true_output = output
+    loss_train = T.mean(categorical_crossentropy_logdomain(prediction, true_output))
+
+    all_params = lasagne.layers.get_all_params(net['output'])
+    # Use ADADELTA for updates
+    updates = lasagne.updates.adadelta(loss_train, all_params)
+    train_fn = theano.function([net['input'].input_var, true_output], loss_train, updates=updates, allow_input_downcast=True)
+
+    # This is the function we'll use to compute the network's output given an input
+    # (e.g., for computing accuracy).  Again, we don't want to apply dropout here
+    # so we set the deterministic kwarg to True.
+
+    # x_train = np.random.randn(10000, 129, 300)
+    # y_train = np.random.random_integers(0, 1, (10000, 100))
+
     print x_train.shape
     print y_train.shape
     # print y_train[0]
-    # print x_train[0].shape
+    # print x_train[0]
 
     train_batches = batch_gen(x_train, y_train, BATCH_SIZE)
     N_BATCHES = len(x_train) // BATCH_SIZE
