@@ -30,7 +30,7 @@ class DataParser():
     self.flushIndex = 0
 
   def process_info(self):
-    songs = utils.apply_to_all_files(self.baseLocation, self.process_mp3_file, self.flushFunc, 1000)
+    songs = utils.apply_to_all_files(self.baseLocation, self.process_mp3_file, self.flushFunc, 500)
     return 'number of song files:' + str(songs)
 
   def process_mp3_file(self, mp3file):
@@ -50,7 +50,7 @@ class DataParser():
     tag_list = np.zeros(NUMBER_OF_TAGS)
     tag_list[self.targetStyles[genreName]] = 1
     try:
-      timbres_list = np.transpose(mp3.mp3ToDFT(mp3file))
+      timbres_list = mp3.mp3ToDFT(mp3file)
     except:
       print "error producing in mp3"
       return 0
