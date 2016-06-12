@@ -54,12 +54,12 @@ class DataParser():
     except:
       print "error producing in mp3"
       return 0
-    if len(timbres_list) < 300:
+    if len(timbres_list) < 1000:
       return 0
     created = 0
     # only take 5 at most
-    for i in range(0, min((len(timbres_list) / 400), 10) * 400, 400):
-      timbres_list_segment = timbres_list[i:(i + 300), ]
+    for i in range(0, min((len(timbres_list) / 1100), 10) * 1100, 1100):
+      timbres_list_segment = timbres_list[i:(i + 1000), ]
       self.ids_list.append(mp3file)
       self.tags_list.append(tag_list)
       self.timbres_list.append(timbres_list_segment)
